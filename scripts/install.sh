@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Mouse Installer for macOS and Linux
-# Usage: curl -fsSL --proto '=https' --tlsv1.2 https://mouseplatform.com/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/coltonharris-wq/mouse/main/scripts/install.sh | bash
 
 BOLD='\033[1m'
 ACCENT='\033[38;2;255;77;77m'       # coral-bright  #ff4d4d
@@ -1901,7 +1901,7 @@ resolve_mouse_bin() {
 
 install_openclaw_from_git() {
     local repo_dir="$1"
-    local repo_url="https://github.com/openclaw/openclaw.git"
+    local repo_url="https://github.com/coltonharris-wq/mouse.git"
 
     if [[ -d "$repo_dir/.git" ]]; then
         ui_info "Installing OpenClaw from git checkout: ${repo_dir}"
