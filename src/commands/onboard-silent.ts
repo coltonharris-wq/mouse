@@ -104,7 +104,7 @@ export async function runSilentOnboarding(
 ): Promise<void> {
   const stateDir = resolveStateDir();
   const port = opts.port ?? 3100;
-  const bind = opts.bind ?? "0.0.0.0";
+  const bind = opts.bind === "0.0.0.0" ? "lan" : (opts.bind ?? "lan");
   const model = opts.model ?? "moonshot/kimi-k2.5";
   const apiKey = opts.apiKey ?? process.env.MOUSE_API_KEY ?? "";
   const token = generateGatewayToken();
@@ -132,20 +132,15 @@ export async function runSilentOnboarding(
     await fs.writeFile(credentialsPath, "", "utf-8");
   }
 
-  // Build config object
+  // Build config object — only include keys the gateway schema recognizes.
+  // Unrecognized keys (version, preset, providers, credentials, employees,
+  // session.dmPolicy, skills.autoEnable) cause gateway startup to fail.
   const config = {
-    version: 1,
-    preset: opts.preset ?? "king-mouse",
     gateway: {
       port,
       bind,
+      mode: "local",
       auth: { token },
-    },
-    providers: {
-      moonshot: {
-        apiKey,
-        baseUrl: "https://api.moonshot.ai/v1",
-      },
     },
     agents: {
       defaults: {
@@ -159,20 +154,8 @@ export async function runSilentOnboarding(
         security: "full",
       },
     },
-    credentials: {
-      persist: true,
-      storePath: path.join(stateDir, "credentials.enc"),
-    },
-    employees: {
-      enabled: true,
-      registry: employeesDir,
-    },
-    session: {
-      dmPolicy: "open",
-    },
-    skills: {
-      autoEnable: Boolean(opts.autoSkills ?? true),
-    },
+    session: {},
+    skills: {},
   };
 
   // Write config file directly (bypassing the fancy config IO to avoid runtime issues)
@@ -180,7 +163,7 @@ export async function runSilentOnboarding(
   await fs.writeFile(configPath, JSON.stringify(config, null, 2), "utf-8");
 
   // Get public IP for the ready message
-  const ip = bind === "0.0.0.0" ? await getPublicIp() : bind;
+  const ip = (bind === "lan" || bind === "0.0.0.0") ? await getPublicIp() : bind;
   const readyUrl = `http://${ip}:${port}/#token=${token}`;
 
   runtime.log(`🐭👑 King Mouse is ready → ${readyUrl}`);
