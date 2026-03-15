@@ -480,7 +480,7 @@ cleanup_npm_mouse_paths() {
     if [[ -z "$npm_root" || "$npm_root" != *node_modules* ]]; then
         return 1
     fi
-    rm -rf "$npm_root"/.openclaw-* "$npm_root"/openclaw 2>/dev/null || true
+    rm -rf "$npm_root"/.mouse-* "$npm_root"/mouse 2>/dev/null || true
 }
 
 extract_mouse_conflict_path() {
@@ -958,7 +958,7 @@ map_legacy_env "MOUSE_GIT_DIR" "CLAWDBOT_GIT_DIR"
 map_legacy_env "MOUSE_GIT_UPDATE" "CLAWDBOT_GIT_UPDATE"
 map_legacy_env "MOUSE_NPM_LOGLEVEL" "CLAWDBOT_NPM_LOGLEVEL"
 map_legacy_env "MOUSE_VERBOSE" "CLAWDBOT_VERBOSE"
-map_legacy_env "OPENCLAW_PROFILE" "CLAWDBOT_PROFILE"
+map_legacy_env "MOUSE_PROFILE" "CLAWDBOT_PROFILE"
 map_legacy_env "MOUSE_INSTALL_SH_NO_RUN" "CLAWDBOT_INSTALL_SH_NO_RUN"
 
 pick_tagline() {
@@ -1607,7 +1607,7 @@ fix_npm_permissions() {
     ui_success "npm configured for user installs"
 }
 
-ensure_openclaw_bin_link() {
+ensure_mouse_bin_link() {
     local npm_root=""
     npm_root="$(npm root -g 2>/dev/null || true)"
     if [[ -z "$npm_root" || ! -d "$npm_root/mouse" ]]; then
@@ -1620,16 +1620,16 @@ ensure_openclaw_bin_link() {
     fi
     mkdir -p "$npm_bin"
     if [[ ! -x "${npm_bin}/mouse" ]]; then
-        ln -sf "$npm_root/openclaw/dist/entry.js" "${npm_bin}/mouse"
+        ln -sf "$npm_root/mouse/dist/entry.js" "${npm_bin}/mouse"
         ui_info "Created mouse bin link at ${npm_bin}/mouse"
     fi
     return 0
 }
 
-# Check for existing OpenClaw installation
-check_existing_openclaw() {
-    if [[ -n "$(type -P openclaw 2>/dev/null || true)" ]]; then
-        ui_info "Existing OpenClaw installation detected, upgrading"
+# Check for existing Mouse installation
+check_existing_mouse() {
+    if [[ -n "$(type -P mouse 2>/dev/null || true)" ]]; then
+        ui_info "Existing Mouse installation detected, upgrading"
         return 0
     fi
     return 1
@@ -1814,7 +1814,7 @@ warn_shell_path_missing_dir() {
 
     echo ""
     ui_warn "PATH missing ${label}: ${dir}"
-    echo "  This can make openclaw show as \"command not found\" in new terminals."
+    echo "  This can make mouse show as \"command not found\" in new terminals."
     echo "  Fix (zsh: ~/.zshrc, bash: ~/.bashrc):"
     echo "    export PATH=\"${dir}:\$PATH\""
 }
@@ -1834,12 +1834,12 @@ maybe_nodenv_rehash() {
 }
 
 warn_mouse_not_found() {
-    ui_warn "Installed, but openclaw is not discoverable on PATH in this shell"
+    ui_warn "Installed, but mouse is not discoverable on PATH in this shell"
     echo "  Try: hash -r (bash) or rehash (zsh), then retry."
     local t=""
-    t="$(type -t openclaw 2>/dev/null || true)"
+    t="$(type -t mouse 2>/dev/null || true)"
     if [[ "$t" == "alias" || "$t" == "function" ]]; then
-        ui_warn "Found a shell ${t} named openclaw; it may shadow the real binary"
+        ui_warn "Found a shell ${t} named mouse; it may shadow the real binary"
     fi
     if command -v nodenv &> /dev/null; then
         echo -e "Using nodenv? Run: ${INFO}nodenv rehash${NC}"
@@ -1861,7 +1861,7 @@ warn_mouse_not_found() {
 resolve_mouse_bin() {
     refresh_shell_command_cache
     local resolved=""
-    resolved="$(type -P openclaw 2>/dev/null || true)"
+    resolved="$(type -P mouse 2>/dev/null || true)"
     if [[ -n "$resolved" && -x "$resolved" ]]; then
         echo "$resolved"
         return 0
@@ -1869,7 +1869,7 @@ resolve_mouse_bin() {
 
     ensure_npm_global_bin_on_path
     refresh_shell_command_cache
-    resolved="$(type -P openclaw 2>/dev/null || true)"
+    resolved="$(type -P mouse 2>/dev/null || true)"
     if [[ -n "$resolved" && -x "$resolved" ]]; then
         echo "$resolved"
         return 0
@@ -1884,7 +1884,7 @@ resolve_mouse_bin() {
 
     maybe_nodenv_rehash
     refresh_shell_command_cache
-    resolved="$(type -P openclaw 2>/dev/null || true)"
+    resolved="$(type -P mouse 2>/dev/null || true)"
     if [[ -n "$resolved" && -x "$resolved" ]]; then
         echo "$resolved"
         return 0
@@ -1899,14 +1899,14 @@ resolve_mouse_bin() {
     return 1
 }
 
-install_openclaw_from_git() {
+install_mouse_from_git() {
     local repo_dir="$1"
     local repo_url="https://github.com/coltonharris-wq/mouse.git"
 
     if [[ -d "$repo_dir/.git" ]]; then
-        ui_info "Installing OpenClaw from git checkout: ${repo_dir}"
+        ui_info "Installing Mouse from git checkout: ${repo_dir}"
     else
-        ui_info "Installing OpenClaw from GitHub (${repo_url})"
+        ui_info "Installing Mouse from GitHub (${repo_url})"
     fi
 
     if ! check_git; then
@@ -1917,7 +1917,7 @@ install_openclaw_from_git() {
     ensure_pnpm_binary_for_scripts
 
     if [[ ! -d "$repo_dir" ]]; then
-        run_quiet_step "Cloning OpenClaw" git clone "$repo_url" "$repo_dir"
+        run_quiet_step "Cloning Mouse" git clone "$repo_url" "$repo_dir"
     fi
 
     if [[ "$GIT_UPDATE" == "1" ]]; then
@@ -1935,7 +1935,7 @@ install_openclaw_from_git() {
     if ! run_quiet_step "Building UI" run_pnpm -C "$repo_dir" ui:build; then
         ui_warn "UI build failed; continuing (CLI may still work)"
     fi
-    run_quiet_step "Building OpenClaw" run_pnpm -C "$repo_dir" build
+    run_quiet_step "Building Mouse" run_pnpm -C "$repo_dir" build
 
     ensure_user_local_bin_on_path
 
@@ -1949,17 +1949,17 @@ EOF
     ui_info "This checkout uses pnpm — run pnpm install (or corepack pnpm install) for deps"
 }
 
-# Install OpenClaw
+# Install Mouse
 resolve_beta_version() {
     local beta=""
-    beta="$(npm view openclaw dist-tags.beta 2>/dev/null || true)"
+    beta="$(npm view mouse dist-tags.beta 2>/dev/null || true)"
     if [[ -z "$beta" || "$beta" == "undefined" || "$beta" == "null" ]]; then
         return 1
     fi
     echo "$beta"
 }
 
-install_openclaw() {
+install_mouse() {
     local package_name="mouse"
     if [[ "$USE_BETA" == "1" ]]; then
         local beta_version=""
@@ -1981,9 +1981,9 @@ install_openclaw() {
     local resolved_version=""
     resolved_version="$(npm view "${package_name}@${MOUSE_VERSION}" version 2>/dev/null || true)"
     if [[ -n "$resolved_version" ]]; then
-        ui_info "Installing OpenClaw v${resolved_version}"
+        ui_info "Installing Mouse v${resolved_version}"
     else
-        ui_info "Installing OpenClaw (${MOUSE_VERSION})"
+        ui_info "Installing Mouse (${MOUSE_VERSION})"
     fi
     local install_spec=""
     if [[ "${MOUSE_VERSION}" == "latest" ]]; then
@@ -1998,7 +1998,7 @@ install_openclaw() {
         install_mouse_npm "${install_spec}"
     fi
 
-    if [[ "${MOUSE_VERSION.*"latest" && "${package_name}" == "mouse" ]]; then
+    if [[ "${MOUSE_VERSION}" == "latest" && "${package_name}" == "mouse" ]]; then
         if ! resolve_mouse_bin &> /dev/null; then
             ui_warn "npm install mouse@latest failed; retrying mouse@next"
             cleanup_npm_mouse_paths
@@ -2006,7 +2006,7 @@ install_openclaw() {
         fi
     fi
 
-    ensure_openclaw_bin_link || true
+    ensure_mouse_bin_link || true
 
     ui_success "Mouse installed"
 }
@@ -2042,11 +2042,11 @@ maybe_open_dashboard() {
 }
 
 resolve_workspace_dir() {
-    local profile="${OPENCLAW_PROFILE:-default}"
+    local profile="${MOUSE_PROFILE:-default}"
     if [[ "${profile}" != "default" ]]; then
-        echo "${HOME}/.openclaw/workspace-${profile}"
+        echo "${HOME}/.mouse/workspace-${profile}"
     else
-        echo "${HOME}/.openclaw/workspace"
+        echo "${HOME}/.mouse/workspace"
     fi
 }
 
@@ -2055,8 +2055,8 @@ run_bootstrap_onboarding_if_needed() {
         return
     fi
 
-    local config_path="${MOUSE_CONFIG_PATH:-$HOME/.openclaw/openclaw.json}"
-    if [[ -f "${config_path}" || -f "$HOME/.openclaw/openclaw.json" || -f "$HOME/.moltbot/moltbot.json" || -f "$HOME/.moldbot/moldbot.json" ]]; then
+    local config_path="${MOUSE_CONFIG_PATH:-$HOME/.mouse/mouse.json}"
+    if [[ -f "${config_path}" || -f "$HOME/.mouse/mouse.json" || -f "$HOME/.moltbot/moltbot.json" || -f "$HOME/.moldbot/moldbot.json" ]]; then
         return
     fi
 
@@ -2107,9 +2107,9 @@ load_install_version_helpers() {
 
 load_install_version_helpers
 
-if ! declare -F extract_openclaw_semver >/dev/null 2>&1; then
+if ! declare -F extract_mouse_semver >/dev/null 2>&1; then
 # Inline fallback when version-parse.sh could not be sourced (for example, stdin install).
-extract_openclaw_semver() {
+extract_mouse_semver() {
     local raw="${1:-}"
     local parsed=""
     parsed="$(
@@ -2123,7 +2123,7 @@ extract_openclaw_semver() {
 }
 fi
 
-resolve_openclaw_version() {
+resolve_mouse_version() {
     local version=""
     local raw_version_output=""
     local claw="${MOUSE_BIN:-}"
@@ -2132,7 +2132,7 @@ resolve_openclaw_version() {
     fi
     if [[ -n "$claw" ]]; then
         raw_version_output=$("$claw" --version 2>/dev/null | head -n 1 | tr -d '\r')
-        version="$(extract_openclaw_semver "$raw_version_output")"
+        version="$(extract_mouse_semver "$raw_version_output")"
         if [[ -z "$version" ]]; then
             version="$raw_version_output"
         fi
@@ -2140,8 +2140,8 @@ resolve_openclaw_version() {
     if [[ -z "$version" ]]; then
         local npm_root=""
         npm_root=$(npm root -g 2>/dev/null || true)
-        if [[ -n "$npm_root" && -f "$npm_root/openclaw/package.json" ]]; then
-            version=$(node -e "console.log(require('${npm_root}/openclaw/package.json').version)" 2>/dev/null || true)
+        if [[ -n "$npm_root" && -f "$npm_root/mouse/package.json" ]]; then
+            version=$(node -e "console.log(require('${npm_root}/mouse/package.json').version)" 2>/dev/null || true)
         fi
     fi
     echo "$version"
@@ -2220,7 +2220,7 @@ main() {
 
     if [[ -z "$INSTALL_METHOD" && -n "$detected_checkout" ]]; then
         if ! is_promptable; then
-            ui_info "Found OpenClaw checkout but no TTY; defaulting to npm install"
+            ui_info "Found Mouse checkout but no TTY; defaulting to npm install"
             INSTALL_METHOD="npm"
         else
             local selected_method=""
@@ -2257,7 +2257,7 @@ main() {
 
     # Check for existing installation
     local is_upgrade=false
-    if check_existing_openclaw; then
+    if check_existing_mouse; then
         is_upgrade=true
     fi
     local should_open_dashboard=false
@@ -2276,14 +2276,14 @@ main() {
         exit 1
     fi
 
-    ui_stage "Installing OpenClaw"
+    ui_stage "Installing Mouse"
 
     local final_git_dir=""
     if [[ "$INSTALL_METHOD" == "git" ]]; then
         # Clean up npm global install if switching to git
-        if npm list -g openclaw &>/dev/null; then
+        if npm list -g mouse &>/dev/null; then
             ui_info "Removing npm global install (switching to git)"
-            npm uninstall -g openclaw 2>/dev/null || true
+            npm uninstall -g mouse 2>/dev/null || true
             ui_success "npm global install removed"
         fi
 
@@ -2292,7 +2292,7 @@ main() {
             repo_dir="$detected_checkout"
         fi
         final_git_dir="$repo_dir"
-        install_openclaw_from_git "$repo_dir"
+        install_mouse_from_git "$repo_dir"
     else
         # Clean up git wrapper if switching to npm
         if [[ -x "$HOME/.local/bin/mouse" ]]; then
@@ -2309,8 +2309,8 @@ main() {
         # Step 4: npm permissions (Linux)
         fix_npm_permissions
 
-        # Step 5: OpenClaw
-        install_openclaw
+        # Step 5: Mouse
+        install_mouse
     fi
 
     ui_stage "Finalizing setup"
@@ -2345,7 +2345,7 @@ main() {
     run_bootstrap_onboarding_if_needed
 
     local installed_version
-    installed_version=$(resolve_openclaw_version)
+    installed_version=$(resolve_mouse_version)
 
     echo ""
     if [[ -n "$installed_version" ]]; then
@@ -2402,7 +2402,7 @@ main() {
         ui_section "Source install details"
         ui_kv "Checkout" "$final_git_dir"
         ui_kv "Wrapper" "$HOME/.local/bin/mouse"
-        ui_kv "Update command" "openclaw update --restart"
+        ui_kv "Update command" "mouse update --restart"
         ui_kv "Switch to npm" "curl -fsSL --proto '=https' --tlsv1.2 https://mouseplatform.com/install.sh | bash -s -- --install-method npm"
     elif [[ "$is_upgrade" == "true" ]]; then
         ui_info "Upgrade complete"
@@ -2442,8 +2442,8 @@ main() {
         if [[ "$NO_ONBOARD" == "1" || "$skip_onboard" == "true" ]]; then
             ui_info "Skipping onboard (requested); run mouse onboard later"
         else
-            local config_path="${MOUSE_CONFIG_PATH:-$HOME/.openclaw/openclaw.json}"
-            if [[ -f "${config_path}" || -f "$HOME/.openclaw/openclaw.json" || -f "$HOME/.moltbot/moltbot.json" || -f "$HOME/.moldbot/moldbot.json" ]]; then
+            local config_path="${MOUSE_CONFIG_PATH:-$HOME/.mouse/mouse.json}"
+            if [[ -f "${config_path}" || -f "$HOME/.mouse/mouse.json" || -f "$HOME/.moltbot/moltbot.json" || -f "$HOME/.moldbot/moldbot.json" ]]; then
                 ui_info "Config already present; running doctor"
                 run_doctor
                 should_open_dashboard=true

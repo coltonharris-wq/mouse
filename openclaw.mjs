@@ -24,7 +24,7 @@ const ensureSupportedNodeVersion = () => {
   }
 
   process.stderr.write(
-    `openclaw: Node.js v${MIN_NODE_VERSION}+ is required (current: v${process.versions.node}).\n` +
+    `mouse: Node.js v${MIN_NODE_VERSION}+ is required (current: v${process.versions.node}).\n` +
       "If you use nvm, run:\n" +
       `  nvm install ${MIN_NODE_MAJOR}\n` +
       `  nvm use ${MIN_NODE_MAJOR}\n` +
@@ -85,5 +85,5 @@ if (await tryImport("./dist/entry.js")) {
 } else if (await tryImport("./dist/entry.mjs")) {
   // OK
 } else {
-  throw new Error("openclaw: missing dist/entry.(m)js (build output).");
+  throw new Error("mouse: missing dist/entry.(m)js (build output).");
 }

@@ -3,15 +3,15 @@
   "version": "2026.3.8",
   "description": "Mouse — zero-config AI agent runtime",
   "keywords": [],
-  "homepage": "https://github.com/openclaw/openclaw#readme",
+  "homepage": "https://github.com/coltonharris-wq/mouse#readme",
   "bugs": {
-    "url": "https://github.com/openclaw/openclaw/issues"
+    "url": "https://github.com/coltonharris-wq/mouse/issues"
   },
   "license": "MIT",
   "author": "",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openclaw/openclaw.git"
+    "url": "git+https://github.com/coltonharris-wq/mouse.git"
   },
   "bin": {
     "mouse": "mouse.mjs"
